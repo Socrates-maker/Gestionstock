@@ -52,7 +52,7 @@ public class ProduitView extends javax.swing.JFrame {
 
         jLabel2.setText("Prix  unitaire(FCFA)");
 
-        designation.setText("             ");
+        designation.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         designation.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 designationActionPerformed(evt);
@@ -118,9 +118,9 @@ public class ProduitView extends javax.swing.JFrame {
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(24, 24, 24)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(designation, javax.swing.GroupLayout.DEFAULT_SIZE, 79, Short.MAX_VALUE)
+                    .addComponent(designation, javax.swing.GroupLayout.DEFAULT_SIZE, 105, Short.MAX_VALUE)
                     .addComponent(pu))
-                .addGap(59, 59, 59)
+                .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 392, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(17, Short.MAX_VALUE))
         );

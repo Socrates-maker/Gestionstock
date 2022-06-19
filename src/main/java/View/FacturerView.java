@@ -8,6 +8,9 @@ import DAO.DaoEntity;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
@@ -31,10 +34,12 @@ public class FacturerView extends javax.swing.JFrame {
      */
     public Integer codecli = 0;
     public Integer codeprod = 0;
+    public Boolean fenetreChange = true;
+    public Integer indexSelectedProdTab=0 ; //Pour la gestion de la suppression d'un produit selectionne dans le tableau
     public FacturerView() {
         initComponents();
-        clientComboDataList();
-        produitComboDataList();
+       // clientComboDataList();
+        //produitComboDataList();
     }
 
     /**
@@ -70,10 +75,13 @@ public class FacturerView extends javax.swing.JFrame {
         quantiteProd = new javax.swing.JSpinner();
         jLabel9 = new javax.swing.JLabel();
         addProduit = new javax.swing.JToggleButton();
-        actualiser = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         listProduitTab = new javax.swing.JTable();
         ajoutProduitTab = new javax.swing.JToggleButton();
+        enleverProduit = new javax.swing.JButton();
+        jLabel10 = new javax.swing.JLabel();
+        coutTotalProd = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
 
         jLabel5.setText("jLabel5");
 
@@ -94,6 +102,14 @@ public class FacturerView extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(java.awt.Color.lightGray);
+        addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            public void windowGainedFocus(java.awt.event.WindowEvent evt) {
+                formWindowGainedFocus(evt);
+            }
+            public void windowLostFocus(java.awt.event.WindowEvent evt) {
+            }
+        });
 
         jLabel2.setText("Nom");
 
@@ -102,6 +118,8 @@ public class FacturerView extends javax.swing.JFrame {
         jLabel4.setText("Tel");
 
         clientCombotBox.setMaximumRowCount(100);
+        clientCombotBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "---" }));
+        clientCombotBox.setToolTipText("");
         clientCombotBox.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 clientCombotBoxMouseClicked(evt);
@@ -142,6 +160,7 @@ public class FacturerView extends javax.swing.JFrame {
 
         jLabel7.setText("Produit");
 
+        produitCombobox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "---" }));
         produitCombobox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 produitComboboxActionPerformed(evt);
@@ -166,21 +185,20 @@ public class FacturerView extends javax.swing.JFrame {
             }
         });
 
-        actualiser.setText("Actualiser");
-        actualiser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                actualiserActionPerformed(evt);
-            }
-        });
-
         listProduitTab.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
-                "Codeprod", "Designaton", "Quantité", "Prix unitaire", "Coût"
+                "Codeprod", "Designation", "Quantité", "Prix unitaire", "Coût"
             }
         ));
+        listProduitTab.setShowGrid(true);
+        listProduitTab.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                listProduitTabMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(listProduitTab);
 
         ajoutProduitTab.setText("+");
@@ -190,103 +208,129 @@ public class FacturerView extends javax.swing.JFrame {
             }
         });
 
+        enleverProduit.setText("-");
+        enleverProduit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                enleverProduitActionPerformed(evt);
+            }
+        });
+
+        jLabel10.setText("Coût total:");
+
+        coutTotalProd.setEditable(false);
+
+        jLabel11.setText("Fcfa");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(14, 14, 14)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 472, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(facturer)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(coutTotalProd, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel11)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(14, 14, 14)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel1)
+                                    .addComponent(jLabel6)
                                     .addComponent(jLabel2)
                                     .addComponent(jLabel3)
-                                    .addComponent(jLabel4)
-                                    .addComponent(jLabel6))
-                                .addGap(39, 39, 39)
+                                    .addComponent(jLabel4))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(prenomClient, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(telClient, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(clientCombotBox, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(nomClient, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(27, 27, 27)
-                                        .addComponent(addClient))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 44, Short.MAX_VALUE)
+                                    .addComponent(prenomClient, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(nomClient, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                         .addComponent(jLabel7)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(produitCombobox, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(produitCombobox, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(addProduit)
+                                        .addComponent(addProduit))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(67, 67, 67)
+                                        .addComponent(clientCombotBox, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jLabel8)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(designationProd, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel9)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(quantiteProd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(ajoutProduitTab))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(facturer))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(148, 148, 148)
-                                .addComponent(actualiser)))))
-                .addGap(22, 22, 22))
+                                        .addComponent(addClient)))
+                                .addGap(36, 36, 36)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel8)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(designationProd, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(141, 141, 141)
+                                        .addComponent(jLabel9)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(quantiteProd, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(ajoutProduitTab)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(enleverProduit))
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 531, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(29, 29, 29)
+                .addGap(59, 59, 59)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
                     .addComponent(produitCombobox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(designationProd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(quantiteProd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel9)
-                    .addComponent(addProduit, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ajoutProduitTab))
+                    .addComponent(quantiteProd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ajoutProduitTab)
+                    .addComponent(enleverProduit)
+                    .addComponent(jLabel7)
+                    .addComponent(addProduit, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(36, 36, 36)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(clientCombotBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel6)
-                            .addComponent(addClient))
-                        .addGap(15, 15, 15)
+                            .addComponent(addClient)
+                            .addComponent(jLabel6))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(nomClient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(prenomClient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3))
-                        .addGap(22, 22, 22)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel3)
+                            .addComponent(prenomClient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(telClient, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel4))
-                        .addGap(44, 44, 44))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(64, 64, 64)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(13, 13, 13)
+                                .addComponent(jLabel1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(3, 3, 3)
+                                .addComponent(facturer))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(actualiser)
-                    .addComponent(facturer))
-                .addContainerGap(175, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(coutTotalProd, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel11)
+                            .addComponent(jLabel10))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -297,12 +341,9 @@ public class FacturerView extends javax.swing.JFrame {
     }//GEN-LAST:event_nomClientActionPerformed
 
     private void clientCombotBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clientCombotBoxActionPerformed
-        System.out.println("combobox");
         int index = clientCombotBox.getSelectedIndex();
-       
-        System.out.println(clientCombotBox.getItemAt(index));
-        String comboItem =clientCombotBox.getItemAt(index);
-        if(!comboItem.equals(" "))
+        String comboItem =clientCombotBox.getModel().getElementAt(index);
+        if(!comboItem.equals("---"))
         {
             String[] cliInfos = clientCombotBox.getItemAt(index).split(" ");
             System.out.println(cliInfos[0]);
@@ -319,7 +360,7 @@ public class FacturerView extends javax.swing.JFrame {
     }//GEN-LAST:event_clientCombotBoxActionPerformed
 
     private void addClientActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addClientActionPerformed
-
+        fenetreChange = true;
         JFrame clientView = new ClientView();
         clientView.setVisible(true);
         clientView.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
@@ -333,19 +374,13 @@ public class FacturerView extends javax.swing.JFrame {
     }//GEN-LAST:event_designationProdActionPerformed
 
     private void addProduitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addProduitActionPerformed
-       JFrame produitView = new ProduitView();
-       produitView.setVisible(true);
-       produitView.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-       produitView.setLocationRelativeTo(null);
-       produitView.setTitle("Produit");
+        fenetreChange=true;
+        JFrame produitView = new ProduitView();
+        produitView.setVisible(true);
+        produitView.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        produitView.setLocationRelativeTo(null);
+        produitView.setTitle("Produit");
     }//GEN-LAST:event_addProduitActionPerformed
-
-    private void actualiserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_actualiserActionPerformed
-  
-       clientComboDataList();
-       produitComboDataList();
-     
-    }//GEN-LAST:event_actualiserActionPerformed
 
     private void clientCombotBoxMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_clientCombotBoxMouseClicked
 
@@ -355,7 +390,7 @@ public class FacturerView extends javax.swing.JFrame {
     private void produitComboboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_produitComboboxActionPerformed
         int index = produitCombobox.getSelectedIndex();
         String comboItem =produitCombobox.getItemAt(index);
-        if(!comboItem.equals(" ")){
+        if(!comboItem.equals("---")){
             String[] produit = comboItem.split(" ");
             designationProd.setText(produit[1]);
             codeprod = Integer.valueOf(produit[0]);
@@ -386,8 +421,7 @@ public class FacturerView extends javax.swing.JFrame {
             
             //List <Facturer> facturer_v=null;
             int nbreRowTab = listProduitTab.getModel().getRowCount();
-            Facturer[] facturer_v = new Facturer[nbreRowTab];
-            System.out.println(nbreRowTab);
+            //System.out.println(nbreRowTab);
             for(int i =0; i<nbreRowTab; i++ ){
                 int idprod = (Integer)listProduitTab.getModel().getValueAt(i, 0);
                 Produit produit = getProduitById(idprod); 
@@ -395,11 +429,11 @@ public class FacturerView extends javax.swing.JFrame {
                 facturer_e.setFacture(facture);
                 facturer_e.setProduit(produit);
                 facturer_e.setQtecde((Integer) quantiteProd.getValue());
-                facturer_v[i] =facturer_e;
-                //facturer_v.add(facturer_e);
                 DaoEntity daofact = new DaoEntity();
                 daofact.Enregistrer(facturer_e);
             }
+            fenetreChange = true;
+            JOptionPane.showMessageDialog(null, "Facture enrégistrée");
        }else{
            JOptionPane.showMessageDialog(null, "Produit ou client non selectionné");
        }
@@ -421,8 +455,34 @@ public class FacturerView extends javax.swing.JFrame {
                 Integer prixUnitaire = getProduitById().getPu();
                 Object prixU = prixUnitaire;
                 Object cout =(Integer)qte  * prixUnitaire;
-                model.addRow(new Object[]{codeProd,designation,qte,prixU,cout});
+                int listProduitTabSize = model.getRowCount();
+                Boolean prod_exist = false;
+                int index_exist = 0;
+                int elemValue = 0;
+                int new_quantity = 0;
+                if(listProduitTabSize>0){
+                    for(int i = 1;i<=listProduitTabSize;i++){
+                        elemValue =(Integer) model.getValueAt(i-1, 0);
+                        if(elemValue== codeprod){
+                            prod_exist = true;
+                            index_exist = i-1;
+                            System.out.println("Element existant:"+model.getValueAt(i-1, 0));
+                        }
+                        else{
+                            System.out.println("Element non existant:"+model.getValueAt(i-1, 0));
+                        }
+                    }
+                }
+                if(prod_exist){
+                    new_quantity =(Integer)model.getValueAt(index_exist, 2) +(Integer) qte;
+                    model.setValueAt(new_quantity, index_exist, 2);
+                    model.setValueAt(new_quantity* prixUnitaire, index_exist, 4);
+                }else{
+                     model.addRow(new Object[]{codeProd,designation,qte,prixU,cout});
+                }
+               
             }
+            calculerCoutProduit();
            
         }
         else
@@ -432,6 +492,31 @@ public class FacturerView extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_ajoutProduitTabActionPerformed
+
+    private void formWindowGainedFocus(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowGainedFocus
+        if(fenetreChange){
+            DefaultTableModel model = (DefaultTableModel) listProduitTab.getModel();
+            model.setNumRows(0);
+            coutTotalProd.setText(" ");
+            clientComboDataList();
+            produitComboDataList(); 
+            fenetreChange = false;
+        }
+    }//GEN-LAST:event_formWindowGainedFocus
+
+    private void enleverProduitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enleverProduitActionPerformed
+        if(indexSelectedProdTab>0){
+            DefaultTableModel model = (DefaultTableModel) listProduitTab.getModel();
+            model.removeRow(indexSelectedProdTab);
+        }
+        else{
+            JOptionPane.showMessageDialog(null,"veuillez selectionner un element à supprimer");
+        }
+    }//GEN-LAST:event_enleverProduitActionPerformed
+
+    private void listProduitTabMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_listProduitTabMouseClicked
+        indexSelectedProdTab = listProduitTab.getSelectedRow();
+    }//GEN-LAST:event_listProduitTabMouseClicked
 
     /**
      * @param args the command line arguments
@@ -469,16 +554,19 @@ public class FacturerView extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton actualiser;
     private javax.swing.JToggleButton addClient;
     private javax.swing.JToggleButton addProduit;
     private javax.swing.JToggleButton ajoutProduitTab;
     private javax.swing.JComboBox<String> clientCombotBox;
+    private javax.swing.JTextField coutTotalProd;
     private javax.swing.JTextField designationProd;
+    private javax.swing.JButton enleverProduit;
     private javax.swing.JButton facturer;
     private javax.swing.JCheckBoxMenuItem jCheckBoxMenuItem1;
     private javax.swing.JFrame jFrame1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -501,10 +589,18 @@ public class FacturerView extends javax.swing.JFrame {
 
 
     @SuppressWarnings("empty-statement")
+   
+    
     private void clientComboDataList(){
         DefaultComboBoxModel model = (DefaultComboBoxModel) clientCombotBox.getModel();
-        model.removeAllElements();
-        clientCombotBox.addItem(" ");
+        int size = model.getSize();
+        System.out.println(size);
+        while(size>1){
+            int i=1;
+           model.removeElementAt(i);
+            i++;
+            size = model.getSize();
+        }
         DaoEntity dao = new DaoEntity();
         dao.getEmf();
         dao.getEm(); 
@@ -515,13 +611,19 @@ public class FacturerView extends javax.swing.JFrame {
             Object client =cli.getNumclient()+" "+ cli.getNomClient()+" "+cli.getPrenomClient();
             clientCombotBox.addItem((String) client);
         } 
-         dao.fermer();
+        dao.fermer();
     }
     
     private void produitComboDataList(){
         DefaultComboBoxModel model = (DefaultComboBoxModel) produitCombobox.getModel();
-        model.removeAllElements();
-        produitCombobox.addItem(" ");
+        int size = model.getSize();
+        System.out.println(size);
+        while(size>1){
+            int i=1;
+           model.removeElementAt(i);
+            i++;
+            size = model.getSize();
+        }
         DaoEntity dao = new DaoEntity();
         dao.getEmf();
         dao.getEm(); 
@@ -563,7 +665,7 @@ public class FacturerView extends javax.swing.JFrame {
     }
     
     private Produit getProduitById(int idprod){
-         DaoEntity daoprod = new DaoEntity();
+        DaoEntity daoprod = new DaoEntity();
         daoprod.getEmf();
         daoprod.getEm();
         String strprod = "SELECT p FROM Produit p WHERE p.codeprod=?1";
@@ -572,6 +674,20 @@ public class FacturerView extends javax.swing.JFrame {
         Produit produit = (Produit) queryprod.getSingleResult();
         daoprod.fermer();
         return produit;
+    }
+    
+    private void calculerCoutProduit(){
+        DefaultTableModel model = (DefaultTableModel) listProduitTab.getModel();
+        int prodTableRowNumber = model.getRowCount();
+        double somme = 0;
+        if(prodTableRowNumber>0){
+             for (int i = 0;i<prodTableRowNumber;i++){
+            Integer cout = (Integer) model.getValueAt(i, 4);
+            somme =somme+cout ;
+            }
+            coutTotalProd.setText(String.valueOf(somme));
+        }
+       
     }
 }
 
